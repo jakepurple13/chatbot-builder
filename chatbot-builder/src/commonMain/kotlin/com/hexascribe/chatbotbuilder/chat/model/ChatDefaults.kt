@@ -12,34 +12,37 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import com.hexascribe.chatbotbuilder.chat.theme.color.DarkColors
-import com.hexascribe.chatbotbuilder.chat.theme.color.DefaultColors
-import com.hexascribe.chatbotbuilder.chat.theme.icons.IconBot
 import co.yml.ychat.domain.model.ChatMessage
+import com.hexascribe.chatbotbuilder.base.RoleEnum
+import com.hexascribe.chatbotbuilder.chat.theme.icons.IconBot
 
-internal data class ChatDefaults(
-    var isDarkModeEnabled: Boolean = false,
-    var darkColors: DarkColors = DarkColors(),
-    var defaultColors: DefaultColors = DefaultColors(),
-    var preSeededMessages: ArrayList<ChatMessage> = ArrayList(),
-    var messages: ArrayList<ChatMessage> = ArrayList(),
-    var errorText: String = "Not Delivered. Tap to try again.",
-    var loadingText: String = "Typing",
-    var inputFieldBorderWidth: Int = 1,
-    var inputFieldCornerRadius: Int = 8,
-    var inputFieldHint: String = "Send a message",
-    var botIconBitmap: ImageBitmap? = null,
-    var maxTokens: Int = 1024,
+public data class ChatDefaults(
+    val errorText: String = "Not Delivered. Tap to try again.",
+    val loadingText: String = "Typing",
+    val inputFieldHint: String = "Send a message",
+    val botIconBitmap: ImageBitmap? = null,
+    val maxTokens: Int = 1024,
+    val preMadeMessages: ChatDefaultScope.() -> Unit = {},
 ) {
+    val preSeededMessages: MutableList<ChatMessage> = mutableListOf()
+    val messages: MutableList<ChatMessage> = mutableListOf()
 
-    val colors by lazy {
-        if (isDarkModeEnabled) darkColors else defaultColors
+    init {
+        object : ChatDefaultScope {
+            override fun addPreSeededMessage(role: RoleEnum, content: String) {
+                preSeededMessages.add(ChatMessage(role.name.lowercase(), content))
+            }
+
+            override fun addMessage(role: RoleEnum, content: String) {
+                messages.add(ChatMessage(role.name.lowercase(), content))
+            }
+        }.preMadeMessages()
     }
 
     @Composable
-    fun BotIcon() {
+    internal fun BotIcon() {
         if (botIconBitmap != null) {
-            Image(botIconBitmap!!, null)
+            Image(botIconBitmap, null)
         } else {
             Icon(
                 modifier = Modifier
@@ -52,4 +55,15 @@ internal data class ChatDefaults(
             )
         }
     }
+
+    public companion object {
+        public fun Default(preMadeMessages: ChatDefaultScope.() -> Unit = {}): ChatDefaults =
+            ChatDefaults(preMadeMessages = preMadeMessages)
+    }
+}
+
+public interface ChatDefaultScope {
+    public fun addPreSeededMessage(role: RoleEnum, content: String)
+
+    public fun addMessage(role: RoleEnum, content: String)
 }

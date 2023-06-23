@@ -17,24 +17,17 @@ class FitnessChatBot: ChatBotFactory {
     
     private let preSeededMessages = "You are a helpful assistant fitness coach, ready to answer any questions related to fitness, including gym tips, exercises, and more."
     
-    func factory() -> ChatBot {
-        let primaryColor = UIColor(Color.fitness)
-        let colors = ChatBot.DarkColorsBuilder()
-            .setBackgroundColor(color: UIColor(0x212121))
-            .setInputFieldBackgroundColor(color: UIColor(0x424242))
-            .setSendButtonColor(color: primaryColor)
-            .setUserBalloonColor(color: primaryColor)
-            .setSendButtonColor(color: primaryColor)
-            .setUserBalloonTextColor(color: .white)
-            .setInputFieldFocusedIndicatorColor(color: primaryColor)
-            .setBotBalloonColor(color: UIColor(0x424242))
-        
-        return ChatBot.Builder(apiKey: Config.apiKey)
-            .setDarkMode(isEnabled: true)
-            .setDarkColorsBuilder(darkColorsBuilder: colors)
-            .addMessage(role: .assistant, content: initialBotMessage)
-            .addPreSeededMessage(role: .system, content: preSeededMessages)
-            .build()
+    func factory() -> UIViewController {
+        return ChatBotKt.ChatScreenViewController(
+            apiKey: Config.apiKey,
+            chatBotColors: ChatBotColors.companion.Default,
+            chatDefaults: ChatDefaults.companion.Default(
+                preMadeMessages: { s in
+                    s.addMessage(role: .assistant, content: self.initialBotMessage)
+                    s.addPreSeededMessage(role: .system, content: self.preSeededMessages)
+                }
+            )
+        )
     }
     
     func toolbarTitle() -> String? {

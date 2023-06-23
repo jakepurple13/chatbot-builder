@@ -13,7 +13,7 @@ struct ComposeView: UIViewControllerRepresentable {
     let chatKitFactory: ChatBotFactory
     
     func makeUIViewController(context: Context) -> UIViewController {
-        chatKitFactory.factory().getViewController()
+        chatKitFactory.factory()
     }
     
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}

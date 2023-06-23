@@ -1,13 +1,16 @@
 package com.hexascribe.chatbotbuilder.chat.state
 
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import co.yml.ychat.YChat
+import co.yml.ychat.entrypoint.features.ChatCompletions
 import com.hexascribe.chatbotbuilder.base.RoleEnum
 import com.hexascribe.chatbotbuilder.chat.model.ChatDefaults
 import com.hexascribe.chatbotbuilder.chat.model.MessageType
-import co.yml.ychat.YChat
-import co.yml.ychat.entrypoint.features.ChatCompletions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -17,34 +20,37 @@ internal class ChatState(
     private val yChat: YChat,
     private val coroutineScope: CoroutineScope
 ) {
+    var message by mutableStateOf("")
 
-    val message = mutableStateOf("")
+    val messages = mutableStateListOf(
+        *chatDefaults.messages.mapNotNull {
+            if (RoleEnum.isAssistant(it.role)) MessageType.Bot(it.content)
+            else if (RoleEnum.isUser(it.role)) MessageType.User(it.content)
+            else null
+        }.toTypedArray()
+    )
 
-    val messages = mutableStateListOf<MessageType>()
-
-    val onButtonVisible = mutableStateOf(message.value.isNotEmpty())
+    val onButtonVisible by derivedStateOf { message.isNotEmpty() && MessageType.Loading !in messages }
 
     private val chatCompletions: ChatCompletions
 
     init {
-        setupChatMessages()
         chatCompletions = createChatCompletions()
     }
 
     fun onMessage(message: String) {
-        this.message.value = message
-        verifyButtonVisible()
+        this.message = message
     }
 
     fun onTryAgain(message: String) {
         onError(false)
-        this.message.value = message
+        this.message = message
         sendMessage()
     }
 
     fun sendMessage() = coroutineScope.launch {
-        val messageToSend = message.value
-        messages.add(MessageType.User(message.value))
+        val messageToSend = message
+        messages.add(MessageType.User(message))
         onLoading(true)
         onMessage("")
         runCatching { chatCompletions.execute(messageToSend) }
@@ -60,7 +66,6 @@ internal class ChatState(
         } else {
             messages.remove(MessageType.Loading)
         }
-        verifyButtonVisible()
     }
 
     private fun onError(isError: Boolean) {
@@ -81,19 +86,5 @@ internal class ChatState(
             chatCompletions.addMessage(it.role, it.content)
         }
         return chatCompletions
-    }
-
-    private fun setupChatMessages() {
-        val chatMessages = chatDefaults.messages.mapNotNull {
-            if (RoleEnum.isAssistant(it.role)) MessageType.Bot(it.content)
-            else if (RoleEnum.isUser(it.role)) MessageType.User(it.content)
-            else null
-        }
-        this.messages.addAll(chatMessages)
-    }
-
-    private fun verifyButtonVisible() {
-        onButtonVisible.value = this.message.value.isNotEmpty()
-                && !messages.contains(MessageType.Loading)
     }
 }

@@ -12,7 +12,7 @@ import SwiftUI
 
 protocol ChatBotFactory {
     
-    func factory() -> ChatBot
+    func factory() -> UIViewController
     
     func logo() -> String?
     

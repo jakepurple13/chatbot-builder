@@ -17,18 +17,17 @@ class WalmartHealthChatBot: ChatBotFactory {
     
     private let preSeededMessages = "You are a helpful chatbot from https://www.sutterhealth.org/ website. You will answer only questions related to healthcare such as workout routines, diet plans, health advice, etc.\nAnswer all questions in a super short and objective way"
     
-    func factory() -> ChatBot {
-        let primaryColor = UIColor(Color.walmartHealth)
-        let defaultColors = ChatBot.DefaultColorsBuilder()
-            .setInputFieldFocusedIndicatorColor(color: primaryColor)
-            .setSendButtonColor(color: primaryColor)
-        
-        return ChatBot.Builder(apiKey: Config.apiKey)
-            .setDefaultColorsBuilder(defaultColorsBuilder: defaultColors)
-            .setBotIcon(image: UIImage(named: "ic_walmart")!)
-            .addMessage(role: .assistant, content: initialBotMessage)
-            .addPreSeededMessage(role: .system, content: preSeededMessages)
-            .build()
+    func factory() -> UIViewController {
+        return ChatBotKt.ChatScreenViewController(
+            apiKey: Config.apiKey,
+            chatBotColors: ChatBotColors.companion.Default,
+            chatDefaults: ChatDefaults.companion.Default(
+                preMadeMessages: { s in
+                    s.addMessage(role: .assistant, content: self.initialBotMessage)
+                    s.addPreSeededMessage(role: .system, content: self.preSeededMessages)
+                }
+            )
+        )
     }
     
     func logo() -> String? {

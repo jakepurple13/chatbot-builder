@@ -12,6 +12,9 @@ kotlin {
                 implementation(project(":chatbot-builder"))
                 implementation(libs.activity.compose)
                 implementation(libs.app.compat)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                implementation(compose.runtime)
             }
         }
     }

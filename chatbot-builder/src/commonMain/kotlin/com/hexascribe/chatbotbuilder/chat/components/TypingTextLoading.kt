@@ -28,7 +28,6 @@ internal fun TypingTextLoading(
     Text(
         modifier = modifier,
         text = textToDisplay,
-        color = chatDefaults.colors.loadingTextColor,
         style = MaterialTheme.typography.bodyMedium,
     )
     LaunchedEffect(Unit) {
